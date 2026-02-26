@@ -1,0 +1,66 @@
+type StudentInput = record {
+  name : text;
+  abcid : text;
+  enrollmentNumber : text;
+  rollNumber : text;
+  motherName : text;
+  gender : text;
+  category : text;
+  caste : text;
+  course : text;
+  semester : nat;
+  subjects : vec text;
+};
+
+type Student = record {
+  id : nat;
+  name : text;
+  abcid : text;
+  enrollmentNumber : text;
+  rollNumber : text;
+  motherName : text;
+  gender : text;
+  category : text;
+  caste : text;
+  course : text;
+  semester : nat;
+  subjects : vec text;
+};
+
+type SubjectMarksInput = record {
+  subject : text;
+  internal : nat;
+  external : nat;
+  practical : nat;
+};
+
+type SubjectMarks = record {
+  subject : text;
+  internal : nat;
+  external : nat;
+  practical : nat;
+  total : nat;
+};
+
+type ResultInput = record {
+  studentId : nat;
+  course : text;
+  semester : nat;
+  marks : vec SubjectMarksInput;
+};
+
+type Result = record {
+  studentId : nat;
+  course : text;
+  semester : nat;
+  marks : vec SubjectMarks;
+  grandTotal : nat;
+};
+
+service : {
+  registerStudent: (StudentInput) -> (Student);
+  listStudents: (text, nat) -> (vec Student) query;
+  listAllStudents: () -> (vec Student) query;
+  saveResult: (ResultInput) -> (Result);
+  getResult: (nat, text, nat) -> (opt Result) query;
+}
