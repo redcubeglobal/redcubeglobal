@@ -1,0 +1,18 @@
+{
+  "canisters": {
+    "exam_backend": {
+      "main": "src/backend/main.mo",
+      "type": "motoko"
+    },
+    "exam_frontend": {
+      "dependencies": ["exam_backend"],
+      "frontend": {
+        "entrypoint": "src/frontend/index.html"
+      },
+      "source": ["src/frontend/dist"],
+      "type": "assets"
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
