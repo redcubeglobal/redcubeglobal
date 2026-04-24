@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JRN Rajasthan Vidyapeeth University Examination Form</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Janardhan Rai Nagar Rajasthan Vidyapeeth University</h1>
+    <p>Examination Form, Result Management & Candidate Verification Portal</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="registration">Candidate Form</button>
+        <button class="tab-btn" data-tab="result">Result Management</button>
+        <button class="tab-btn" data-tab="admin">Admin Panel</button>
+      </div>
+
+      <div id="registration" class="tab-content active">
+        <h2>Examination Registration Form</h2>
+        <form id="examForm">
+          <fieldset>
+            <legend>Basic Details</legend>
+            <div class="grid two">
+              <label>Enrollment No.
+                <input name="enrollmentNo" required />
+              </label>
+              <label>ABCID
+                <input name="abcId" required />
+              </label>
+              <label>Name
+                <input name="name" required />
+              </label>
+              <label>Father Name
+                <input name="fatherName" required />
+              </label>
+              <label>Mother Name
+                <input name="motherName" required />
+              </label>
+              <label>Email Id
+                <input type="email" name="email" required />
+              </label>
+              <label>Mobile No.
+                <input name="mobile" pattern="[0-9]{10}" placeholder="10-digit" required />
+              </label>
+              <label>Mobile No. (AADHAR Registered)
+                <input name="aadhaarMobile" pattern="[0-9]{10}" placeholder="10-digit" required />
+              </label>
+              <label>Gender
+                <select name="gender" required>
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label>Category
+                <select name="category" required>
+                  <option value="">Select</option>
+                  <option>General</option>
+                  <option>OBC</option>
+                  <option>SC</option>
+                  <option>ST</option>
+                  <option>EWS</option>
+                </select>
+              </label>
+              <label>Course
+                <select id="course" name="course" required></select>
+              </label>
+              <label>Semester
+                <select id="semester" name="semester" required></select>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Subjects</legend>
+            <div>
+              <h3>Mandatory Subjects (Auto Mapped)</h3>
+              <ul id="mandatorySubjects" class="subject-list"></ul>
+            </div>
+            <div>
+              <h3>Optional Subjects (Choose up to 2)</h3>
+              <div id="optionalSubjects" class="subject-grid"></div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Previous Exams Details</legend>
+            <div class="grid three">
+              <label>10th Board / Year / %
+                <input name="exam10" placeholder="CBSE/2020/80" required />
+              </label>
+              <label>12th Board / Year / %
+                <input name="exam12" placeholder="RBSE/2022/78" required />
+              </label>
+              <label>Previous Exam (UG/PG) / Year / %
+                <input name="prevExam" placeholder="BA/2025/72" required />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Document Uploads</legend>
+            <div class="grid two">
+              <label>Passport Size Photo
+                <input type="file" name="photo" accept="image/*" required />
+              </label>
+              <label>Signature
+                <input type="file" name="signature" accept="image/*" required />
+              </label>
+              <label>10th Marksheet
+                <input type="file" name="doc10" accept=".pdf,image/*" required />
+              </label>
+              <label>12th Marksheet
+                <input type="file" name="doc12" accept=".pdf,image/*" required />
+              </label>
+              <label>Previous Exam Marksheet
+                <input type="file" name="docPrevious" accept=".pdf,image/*" required />
+              </label>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="primary">Submit Form</button>
+        </form>
+      </div>
+
+      <div id="result" class="tab-content">
+        <h2>Result Management</h2>
+        <div class="grid two">
+          <label>Course
+            <select id="resultCourse"></select>
+          </label>
+          <label>Semester
+            <select id="resultSemester"></select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Enrollment No.</th>
+                <th>Name</th>
+                <th>Subject</th>
+                <th>Internal</th>
+                <th>External</th>
+                <th>Practical</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="resultRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="admin" class="tab-content">
+        <h2>Admin Verification Panel</h2>
+        <p>Review submitted candidates, verify them, and issue admit card.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Enrollment No.</th>
+                <th>Name</th>
+                <th>Course/Sem</th>
+                <th>Status</th>
+                <th>Documents</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="candidateRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <template id="admitCardTemplate">
+    <article class="admit-card">
+      <h2>Admit Card</h2>
+      <p><strong>University:</strong> Janardhan Rai Nagar Rajasthan Vidyapeeth University</p>
+      <p><strong>Candidate Name:</strong> <span data-field="name"></span></p>
+      <p><strong>Enrollment No.:</strong> <span data-field="enrollmentNo"></span></p>
+      <p><strong>ABCID:</strong> <span data-field="abcId"></span></p>
+      <p><strong>Course/Semester:</strong> <span data-field="course"></span> - <span data-field="semester"></span></p>
+      <p><strong>Gender / Category:</strong> <span data-field="gender"></span> / <span data-field="category"></span></p>
+      <p><strong>Subjects:</strong> <span data-field="subjects"></span></p>
+      <p><strong>Status:</strong> VERIFIED</p>
+    </article>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
