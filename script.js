@@ -1,3 +1,5 @@
+const STORAGE_KEY = "jrn_exam_candidates_v2";
+
 const courseData = {
   BA: {
     semesters: ["Semester 1", "Semester 2", "Semester 3", "Semester 4", "Semester 5", "Semester 6"],
@@ -61,20 +63,37 @@ const semesterSelect = document.getElementById("semester");
 const mandatorySubjects = document.getElementById("mandatorySubjects");
 const optionalSubjects = document.getElementById("optionalSubjects");
 const candidateRows = document.getElementById("candidateRows");
-const candidates = [];
+const resultCourse = document.getElementById("resultCourse");
+const resultSemester = document.getElementById("resultSemester");
+const resultRows = document.getElementById("resultRows");
 
-function bootCourses() {
-  courseSelect.innerHTML = '<option value="">Select Course</option>';
+let candidates = loadCandidates();
+
+function saveCandidates() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(candidates));
+}
+
+function loadCandidates() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function bootCourses(selectNode) {
+  selectNode.innerHTML = '<option value="">Select Course</option>';
   Object.keys(courseData).forEach((course) => {
     const option = document.createElement("option");
     option.value = course;
     option.textContent = course;
-    courseSelect.append(option);
+    selectNode.append(option);
   });
 }
 
-function bootSemesters(course) {
-  semesterSelect.innerHTML = '<option value="">Select Semester</option>';
+function bootSemesters(selectNode, course) {
+  selectNode.innerHTML = '<option value="">Select Semester</option>';
   if (!courseData[course]) {
     return;
   }
@@ -82,7 +101,7 @@ function bootSemesters(course) {
     const option = document.createElement("option");
     option.value = semester;
     option.textContent = semester;
-    semesterSelect.append(option);
+    selectNode.append(option);
   });
 }
 
@@ -111,10 +130,12 @@ function renderSubjects() {
 }
 
 function readFiles(fileList) {
-  return Array.from(fileList || []).map((file) => ({
-    name: file.name,
-    sizeKB: Math.ceil(file.size / 1024)
-  }));
+  return Array.from(fileList || []).map((file) => file.name);
+}
+
+function rowDocuments(candidate) {
+  const docs = Object.values(candidate.documents).flat();
+  return docs.length ? docs.join(", ") : "--";
 }
 
 function tableRow(candidate, index) {
@@ -124,6 +145,7 @@ function tableRow(candidate, index) {
     <td>${candidate.name}</td>
     <td>${candidate.course} / ${candidate.semester}</td>
     <td class="${candidate.verified ? "status-verified" : ""}">${candidate.verified ? "Verified" : "Pending"}</td>
+    <td>${rowDocuments(candidate)}</td>
     <td>
       <button class="action-btn verify" data-action="verify" data-index="${index}">Verify</button>
       <button class="action-btn admit" data-action="admit" data-index="${index}">Download Admit Card</button>
@@ -135,6 +157,56 @@ function tableRow(candidate, index) {
 function renderCandidates() {
   candidateRows.innerHTML = "";
   candidates.forEach((candidate, index) => candidateRows.append(tableRow(candidate, index)));
+}
+
+function computeTotal(subjectResult) {
+  return Number(subjectResult.internal || 0) + Number(subjectResult.external || 0) + Number(subjectResult.practical || 0);
+}
+
+function renderResultRows() {
+  resultRows.innerHTML = "";
+  const course = resultCourse.value;
+  const semester = resultSemester.value;
+  if (!course || !semester) {
+    return;
+  }
+
+  const filtered = candidates.filter((candidate) => candidate.course === course && candidate.semester === semester);
+  filtered.forEach((candidate) => {
+    const allSubjects = [...candidate.mandatorySubjects, ...candidate.optionalSubjects];
+    allSubjects.forEach((subject) => {
+      const score = candidate.results?.[subject] || { internal: 0, external: 0, practical: 0 };
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${candidate.enrollmentNo}</td>
+        <td>${candidate.name}</td>
+        <td>${subject}</td>
+        <td><input type="number" min="0" max="30" value="${score.internal}" data-field="internal" data-id="${candidate.id}" data-subject="${subject}" /></td>
+        <td><input type="number" min="0" max="50" value="${score.external}" data-field="external" data-id="${candidate.id}" data-subject="${subject}" /></td>
+        <td><input type="number" min="0" max="20" value="${score.practical}" data-field="practical" data-id="${candidate.id}" data-subject="${subject}" /></td>
+        <td class="result-total">${computeTotal(score)}</td>
+      `;
+      resultRows.append(tr);
+    });
+  });
+}
+
+function updateResultValue(candidateId, subject, field, value) {
+  const candidate = candidates.find((item) => item.id === candidateId);
+  if (!candidate) {
+    return;
+  }
+
+  if (!candidate.results) {
+    candidate.results = {};
+  }
+
+  if (!candidate.results[subject]) {
+    candidate.results[subject] = { internal: 0, external: 0, practical: 0 };
+  }
+
+  candidate.results[subject][field] = Number(value) || 0;
+  saveCandidates();
 }
 
 function buildAdmitCard(candidate) {
@@ -163,11 +235,18 @@ function buildAdmitCard(candidate) {
 }
 
 courseSelect.addEventListener("change", () => {
-  bootSemesters(courseSelect.value);
+  bootSemesters(semesterSelect, courseSelect.value);
   renderSubjects();
 });
 
 semesterSelect.addEventListener("change", renderSubjects);
+
+resultCourse.addEventListener("change", () => {
+  bootSemesters(resultSemester, resultCourse.value);
+  renderResultRows();
+});
+
+resultSemester.addEventListener("change", renderResultRows);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -184,6 +263,7 @@ form.addEventListener("submit", (event) => {
   const semester = formData.get("semester");
 
   const candidate = {
+    id: `CAN-${Date.now()}`,
     enrollmentNo: formData.get("enrollmentNo"),
     abcId: formData.get("abcId"),
     name: formData.get("name"),
@@ -210,11 +290,14 @@ form.addEventListener("submit", (event) => {
       doc12: readFiles(form.doc12.files),
       docPrevious: readFiles(form.docPrevious.files)
     },
+    results: {},
     verified: false
   };
 
   candidates.push(candidate);
+  saveCandidates();
   renderCandidates();
+  renderResultRows();
   form.reset();
   mandatorySubjects.innerHTML = "";
   optionalSubjects.innerHTML = "";
@@ -234,12 +317,26 @@ candidateRows.addEventListener("click", (event) => {
 
   if (button.dataset.action === "verify") {
     candidates[index].verified = true;
+    saveCandidates();
     renderCandidates();
     return;
   }
 
   if (button.dataset.action === "admit") {
     buildAdmitCard(candidates[index]);
+  }
+});
+
+resultRows.addEventListener("input", (event) => {
+  const input = event.target.closest("input");
+  if (!input) {
+    return;
+  }
+
+  updateResultValue(input.dataset.id, input.dataset.subject, input.dataset.field, input.value);
+  const currentScore = candidates.find((item) => item.id === input.dataset.id)?.results?.[input.dataset.subject];
+  if (currentScore) {
+    input.closest("tr").querySelector(".result-total").textContent = computeTotal(currentScore);
   }
 });
 
@@ -252,4 +349,6 @@ document.querySelectorAll(".tab-btn").forEach((button) => {
   });
 });
 
-bootCourses();
+bootCourses(courseSelect);
+bootCourses(resultCourse);
+renderCandidates();

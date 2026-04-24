@@ -9,13 +9,14 @@
 <body>
   <header>
     <h1>Janardhan Rai Nagar Rajasthan Vidyapeeth University</h1>
-    <p>Examination Form & Candidate Verification Portal</p>
+    <p>Examination Form, Result Management & Candidate Verification Portal</p>
   </header>
 
   <main>
     <section class="card">
       <div class="tabs">
         <button class="tab-btn active" data-tab="registration">Candidate Form</button>
+        <button class="tab-btn" data-tab="result">Result Management</button>
         <button class="tab-btn" data-tab="admin">Admin Panel</button>
       </div>
 
@@ -128,10 +129,38 @@
         </form>
       </div>
 
+      <div id="result" class="tab-content">
+        <h2>Result Management</h2>
+        <div class="grid two">
+          <label>Course
+            <select id="resultCourse"></select>
+          </label>
+          <label>Semester
+            <select id="resultSemester"></select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Enrollment No.</th>
+                <th>Name</th>
+                <th>Subject</th>
+                <th>Internal</th>
+                <th>External</th>
+                <th>Practical</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="resultRows"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div id="admin" class="tab-content">
         <h2>Admin Verification Panel</h2>
         <p>Review submitted candidates, verify them, and issue admit card.</p>
-        <div id="candidateTableWrap" class="table-wrap">
+        <div class="table-wrap">
           <table>
             <thead>
               <tr>
@@ -139,6 +168,7 @@
                 <th>Name</th>
                 <th>Course/Sem</th>
                 <th>Status</th>
+                <th>Documents</th>
                 <th>Actions</th>
               </tr>
             </thead>
